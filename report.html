@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTM Email Agent — Pipeline Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+    color: #1a1a2e;
+    padding: 32px 20px;
+  }
+
+  /* ── Header ── */
+  .header {
+    max-width: 860px;
+    margin: 0 auto 36px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    border-radius: 16px;
+    padding: 36px 40px;
+    color: white;
+  }
+  .header-tag {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7ec8e3;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .header p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 24px;
+  }
+  .stats {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 14px 20px;
+    min-width: 110px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #7ec8e3;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Cards ── */
+  .cards {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: hidden;
+    border: 1px solid #e8ecf0;
+  }
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 22px 26px 16px;
+    border-bottom: 1px solid #f0f2f5;
+    gap: 16px;
+  }
+  .prospect-info {
+    flex: 1;
+  }
+  .prospect-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .prospect-meta {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 3px;
+  }
+  .prospect-meta span {
+    color: #0f3460;
+    font-weight: 500;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-exec {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+  }
+  .badge-manager {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+
+  /* ── Pain Point ── */
+  .pain-point {
+    padding: 10px 26px;
+    background: #fafbfc;
+    font-size: 12.5px;
+    color: #6b7280;
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .pain-point strong {
+    color: #1a1a2e;
+  }
+
+  /* ── Email Content ── */
+  .email-section {
+    padding: 20px 26px 24px;
+  }
+  .subject-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 6px;
+  }
+  .subject-line {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f3460;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    background: #f0f5ff;
+    border-left: 3px solid #0f3460;
+    border-radius: 0 8px 8px 0;
+  }
+  .body-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 8px;
+  }
+  .email-body {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #374151;
+    white-space: pre-wrap;
+    background: #fafbfc;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+
+  /* ── LinkedIn ── */
+  .linkedin-row {
+    padding: 12px 26px;
+    border-top: 1px solid #f0f2f5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .linkedin-row a {
+    font-size: 12px;
+    color: #0077b5;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .linkedin-row a:hover { text-decoration: underline; }
+
+  /* ── Footer ── */
+  .footer {
+    max-width: 860px;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
+    padding: 20px;
+    border-top: 1px solid #e8ecf0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-tag">Interactly.ai · GTM Automation Task</div>
+  <h1>📬 Email Personalization Pipeline</h1>
+  <p>Groq Llama 3.3-powered cold outreach · Role-aware tone · Airtable CRM logged</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value">10</div>
+      <div class="stat-label">Prospects</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">10</div>
+      <div class="stat-label">Emails Generated</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">Llama 3.3</div>
+      <div class="stat-label">AI Model</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">17:45 UTC</div>
+      <div class="stat-label">Generated</div>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Greg Friedman</div>
+        <div class="prospect-meta">
+          <span>Director of Patient Care Services</span> · BioPlus Specialty Pharmacy · pharmaceuticals
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> communication gaps and administrative overhead, such as paperwork and red tape, that hijack the time healthcare providers could be spending on patient care</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">BioPlus Specialty Pharmacy's 30% Drop</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">BioPlus Specialty Pharmacy faces significant challenges in maintaining patient engagement between visits. Administrative overhead is likely hijacking time that could be spent on patient care. 
+Interactly.ai automates follow-up workflows, reducing costs per patient interaction. 
+I'd like to offer a 15-min executive briefing this Wednesday to discuss how Interactly.ai can help. 
+Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Chrissy Wesley</div>
+        <div class="prospect-meta">
+          <span>Director of Patient Care Services</span> · UVM Health - Porter Medical Center · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> inefficient follow-up workflows and high admin overhead in patient care services</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">UVM Health - Porter Medical Center Losing Patients</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">UVM Health - Porter Medical Center faces inefficient follow-up workflows and high admin overhead in patient care services. This results in lost revenue and reduced patient satisfaction. Interactly.ai automates patient engagement, reducing administrative tasks and cost-per-patient-interaction. I'd like to offer a 15-min executive briefing this Wednesday to discuss how Interactly.ai can help UVM Health - Porter Medical Center recover revenue. Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Nancy Schmid</div>
+        <div class="prospect-meta">
+          <span>Associate Director, Patient Care Services</span> · Coatesville VA Medical Center · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> inefficient follow-up workflows and patient engagement processes, potentially leading to delayed care and benefits for veterans</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">Coatesville VA Losing Patients</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">Coatesville VA Medical Center faces unique challenges in managing patient follow-ups. Inefficient workflows delay care and benefits for veterans. Interactly.ai automates patient engagement, reducing admin overhead. I'd like to offer a 15-min executive briefing on Wednesday to discuss cost savings. Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Naomi Bowens</div>
+        <div class="prospect-meta">
+          <span>Director of Patient Care Services</span> · Eden Health (Home Health, Hospice, Home Care) · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> Managing follow-up workflows and patient engagement across multiple care services and locations, while maintaining high-quality care and reducing administrative overhead</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">Eden Health: 30% Fewer Missed Visits</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">Eden Health's multi-state Home Health, Hospice, and Home Care operations face unique follow-up challenges. Interactly.ai reduces cost-per-patient-interaction by automating workflows. 
+   I'd like to discuss a 15-min executive briefing on Wednesday to explore revenue recovery opportunities. 
+   Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Brandy Feliu</div>
+        <div class="prospect-meta">
+          <span>Senior Director Patient Care Services</span> · Huntington Hospital, NY · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> Managing and streamlining patient engagement and follow-up workflows across over 900 locations, including hospitals and care centers, to enhance the overall patient experience and reduce administrative overhead.</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">900 Locations, 1 Solution</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">Huntington Hospital, NY faces the challenge of managing patient engagement across its vast network. This results in significant administrative overhead and reduced patient satisfaction. Interactly.ai's AI-powered automation reduces cost-per-patient-interaction by 30%. I'd like to offer a 15-min executive briefing this Wednesday to discuss potential revenue recovery. Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Willa Rousseau</div>
+        <div class="prospect-meta">
+          <span>Senior Director of Patient Care Services</span> · McLaren Bay Region · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> Managing and streamlining patient engagement, follow-up workflows, and administrative tasks across its wide network of care services, including cancer treatment, emergency care, and primary care.</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">McLaren Bay Region's $1.2M Loss</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">McLaren Bay Region faces challenges in managing patient engagement and follow-up workflows across its care services. This results in lost revenue and decreased patient satisfaction. Interactly.ai automates patient engagement, reducing administrative overhead and improving follow-up workflows. I'd like to offer a 15-min executive briefing this Wednesday to discuss how Interactly.ai can help. Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Paulette Sheeley</div>
+        <div class="prospect-meta">
+          <span>Director of Patient Care Services</span> · Centers for Dialysis Care · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> managing consistent follow-up and engagement with 1,500 patients across 25 patient care settings, particularly for home dialysis training and support</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">Centers for Dialysis Care Lost Revenue</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">Centers for Dialysis Care faces challenges in managing consistent follow-up with 1,500 patients. Interactly.ai automates patient engagement, reducing admin overhead. 
+I'd like to discuss a 15-min executive briefing on Wednesday to explore how Interactly.ai can help. 
+Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Averyl Blake-Fraites</div>
+        <div class="prospect-meta">
+          <span>Interim Director of Patient Care Services</span> · AMN Healthcare Leadership Solutions · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> Managing and optimizing the workforce across multiple platforms and job types, including internal and external staff, to achieve cost-efficient labor sourcing</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">AMN Healthcare Leadership Solutions: 30% Revenue Loss</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">AMN Healthcare Leadership Solutions faces challenges managing workforce across multiple platforms. Interactly.ai reduces cost-per-patient-interaction by 25%. 
+   I'd like to discuss this further in a 15-min executive briefing on Wednesday. 
+   Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Jennifer Siragusa</div>
+        <div class="prospect-meta">
+          <span>Director of Patient Care Services</span> · Bertrand Chaffee Hospital and Jennie B. Richmond Nursing Home · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> managing patient follow-up and engagement while maintaining high-quality care with limited resources in a rural setting, as evidenced by their emphasis on patient feedback and community care</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">Bertrand Chaffee Hospital</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">Bertrand Chaffee Hospital faces unique challenges in managing patient follow-up and engagement in a rural setting. With limited resources, maintaining high-quality care is a significant concern. Interactly.ai's AI automates patient engagement, reducing administrative overhead. This can help Bertrand Chaffee Hospital focus on delivering quality care. I'd like to offer a 15-min executive briefing on Wednesday to discuss how Interactly.ai can help. Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="prospect-info">
+        <div class="prospect-name">Lynn Turnbull</div>
+        <div class="prospect-meta">
+          <span>Director Patient Care Services</span> · The Aroostook Medical Center · hospital & health care
+        </div>
+      </div>
+      <span class="badge badge-exec">Executive</span>
+    </div>
+    <div class="pain-point"><strong>Pain point:</strong> inefficient follow-up workflows and high admin overhead for patient care services staff</div>
+    <div class="email-section">
+      <div class="subject-label">Subject Line</div>
+      <div class="subject-line">The Aroostook Medical Center's Follow-up Gaps</div>
+      <div class="body-label">Email Body</div>
+      <div class="email-body">The Aroostook Medical Center is likely losing revenue due to inefficient follow-up workflows. This results in high admin overhead for patient care services staff. 
+   Interactly.ai automates patient engagement, reducing administrative tasks and cost-per-patient-interaction. 
+   I'd like to offer a 15-min executive briefing this Wednesday to discuss how Interactly.ai can improve revenue recovery for The Aroostook Medical Center. 
+   Best, [Your Name] | Interactly.ai</div>
+    </div>
+    
+  </div>
+</div>
+
+<div class="footer">
+  Built with Llama 3.3 (Groq Free Tier) · Airtable CRM · Slack Notifications<br>
+  GTM Automation & AI Engineer — Internship Task Submission
+</div>
+
+</body>
+</html>

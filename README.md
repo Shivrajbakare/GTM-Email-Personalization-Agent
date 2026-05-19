@@ -115,30 +115,6 @@ python report.py
 
 Outputs `report.html` — open in browser and screenshot for your submission.
 
----
-
-## Diagnosing Airtable Issues
-
-If Airtable is showing empty / not logging:
-
-```bash
-python test_airtable.py
-```
-
-This script:
-- Checks all `.env` variables are set
-- Verifies the API connection and URL format
-- Lists which table fields exist vs are missing
-- Sends a test record so you can confirm write access
-
-Common mistakes:
-- Using `airtable.com` instead of `api.airtable.com` in the URL ← fixed in this version
-- Missing `/v0/` in the API path ← fixed
-- Token missing `data.records:write` permission
-- Field name case mismatch (Airtable is case-sensitive)
-
----
-
 ## How the AI Works
 
 ### Role-Aware Prompt Logic
@@ -170,23 +146,23 @@ Every generated email is checked automatically:
 
 ```
 ═══════════════════════════════════════════════════════════
-  🚀 GTM Email Agent (Groq)  ·  10 prospects
+   GTM Email Agent (Groq)  ·  10 prospects
 ═══════════════════════════════════════════════════════════
 
 [1/10] Sarah Chen  ·  CMO  ·  WellBridge Medical Group
-      ✉  Generating email ... done
-      📌 Subject: "WellBridge Losing Patients Between Visits?"
-      📋 Airtable: logged ✓
+        Generating email ... done
+       Subject: "WellBridge Losing Patients Between Visits?"
+       Airtable: logged ✓
 
 [2/10] James Okafor  ·  VP Operations  ·  CareLink Urgent Care
-      ✉  Generating email ... done
-      📌 Subject: "CareLink's Staff Spends 6 Hours/Day on Calls"
-      📋 Airtable: logged ✓
+       Generating email ... done
+       Subject: "CareLink's Staff Spends 6 Hours/Day on Calls"
+       Airtable: logged ✓
 ...
 ═══════════════════════════════════════════════════════════
-  ✅ Done in 18.4s
-  📊 10/10 generated  |  0 failed
-  📁 Saved → output_emails.csv
+  Done in 18.4s
+  10/10 generated  |  0 failed
+  Saved → output_emails.csv
 ═══════════════════════════════════════════════════════════
 ```
 
@@ -196,14 +172,11 @@ Every generated email is checked automatically:
 
 ```
 gtm-pipeline/
-├── STEP1_FIND_PROSPECTS.md      # How to find real LinkedIn prospects
 ├── prospects.csv                # Input: fill with real people
 ├── enrich.py                    # Step 2: website scrape + Groq pain point extraction
 ├── main.py                      # Step 3: email generation → Airtable → Slack
 ├── report.py                    # Step 4: HTML report generator
-├── test_airtable.py             # Diagnostic: verify Airtable connection + fields
 ├── requirements.txt
-├── .env.example
 └── README.md
 ─── Auto-generated ──────────────────────────────────────────
 ├── prospects_enriched.csv       # After enrich.py
@@ -217,11 +190,11 @@ gtm-pipeline/
 
 | Interactly JD Deliverable | This Project |
 |---|---|
-| AI agents personalizing emails | ✅ Groq Llama 3.3, role-aware prompting, quality guard |
-| Apollo → HubSpot sync | ✅ CSV (Apollo format) → Airtable (CRM) |
-| Weekly pipeline report to Slack | ✅ Slack webhook with subject line previews |
-| Stale deal alerts / triggers | 🔜 Easy to add with scheduled cron + status field |
-| LinkedIn monitor | 🔜 Foundation laid — enrichment reads LinkedIn URLs |
+| AI agents personalizing emails |  Groq Llama 3.3, role-aware prompting, quality guard |
+| Apollo → HubSpot sync | CSV (Apollo format) → Airtable (CRM) |
+| Weekly pipeline report to Slack |  Slack webhook with subject line previews |
+| Stale deal alerts / triggers | Easy to add with scheduled cron + status field |
+| LinkedIn monitor |  Foundation laid — enrichment reads LinkedIn URLs |
 
 ---
 

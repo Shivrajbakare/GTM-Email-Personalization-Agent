@@ -2,18 +2,18 @@
 > Interactly.ai — GTM Automation & AI Engineer Internship Task
 
 A 4-step pipeline that finds real healthcare prospects, enriches their data via website scraping,
-generates hyper-personalized cold emails using Claude AI, and delivers a shareable HTML report.
+generates hyper-personalized cold emails using **Groq (Llama 3.3-70b)**, and delivers a shareable HTML report.
 
 ---
 
 ## The 4-Step Pipeline
 
 ```
-Step 1: You research 10 real prospects  (manual, 1–2 hrs)
+Step 1: You research 10+ real prospects  (manual, 1–2 hrs)
            ↓
-Step 2: python enrich.py               (scrapes websites → Claude extracts pain points)
+Step 2: python enrich.py               (scrapes websites → Groq extracts pain points)
            ↓
-Step 3: python main.py                 (Claude generates emails → Airtable → Slack)
+Step 3: python main.py                 (Groq generates emails → Airtable CRM → Slack)
            ↓
 Step 4: python report.py               (builds HTML report to screenshot & share)
 ```
@@ -30,37 +30,48 @@ pip install -r requirements.txt
 ### Configure environment
 ```bash
 cp .env.example .env
-# Open .env — paste your ANTHROPIC_API_KEY (required)
-# Optionally add Airtable + Slack credentials
+# Open .env and paste your credentials
 ```
 
-**Get Anthropic API key:** [console.anthropic.com](https://console.anthropic.com) → API Keys → Create
+**Required:**
+- `GROQ_API_KEY` — free at [console.groq.com](https://console.groq.com) → API Keys → Create
 
-**Get Airtable credentials (optional):**
-1. Free account at [artable.com](https://airtable.com)
+**Optional (for CRM + alerts):**
+- `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_NAME`
+- `SLACK_WEBHOOK_URL`
+
+**Get Airtable credentials:**
+1. Free account at [airtable.com](https://airtable.com)
 2. New Base → Table named `Emails` with these fields:
-   - Name, Title, Company, Industry, Pain Point, LinkedIn URL (Single line text)
-   - Subject Line, Email Body (Long text)
-   - Status, Generated At (Single line text)
-3. Developer hub → Personal access tokens → Create token
-4. Base ID: click Help → API Documentation → copy from URL
 
-**Get Slack webhook (optional):**
+| Field Name | Type |
+|---|---|
+| Name, Title, Company, Industry, LinkedIn URL, Status, Generated At | Single line text |
+| Pain Point, Subject Line, Email Body | Long text |
+
+3. Developer hub → Personal access tokens → Create token (needs `data.records:read` + `data.records:write`)
+4. Base ID: Help → API Documentation → copy `appXXXXXXXXXXXXXX` from URL
+
+> **Diagnose Airtable issues first:** `python test_airtable.py`
+
+**Get Slack webhook:**
 [api.slack.com/apps](https://api.slack.com/apps) → Create App → Incoming Webhooks → Add to channel
 
 ---
 
-## Step 1 — Find 10 Real Prospects
+## Step 1 — Find Real Prospects
 
-Read `STEP1_FIND_PROSPECTS.md` for exact LinkedIn search strings and tips.
+Read `STEP1_FIND_PROSPECTS.md` for LinkedIn search strings and tips.
 
-Fill `prospects.csv` with:
+Fill `prospects.csv`:
 ```
 name,title,company,website,linkedin_url,industry,pain_point
 Sarah Chen,CMO,WellBridge Medical Group,https://wellbridgemedical.com,https://linkedin.com/in/...,Healthcare,
 ```
 
-**Leave pain_point blank** — the enrichment script fills it.
+**Leave `pain_point` blank** — enrich.py fills it automatically.
+
+> You can use more than 10 prospects — the pipeline handles any number. 10 is the minimum for the task.
 
 ---
 
@@ -70,8 +81,12 @@ Sarah Chen,CMO,WellBridge Medical Group,https://wellbridgemedical.com,https://li
 python enrich.py
 ```
 
-Visits each company's website, scrapes public content, uses Claude Haiku to extract
-their specific pain point. Outputs `prospects_enriched.csv`.
+Visits each company's website, scrapes public content, uses **Groq Llama 3.3** to extract:
+- What the company actually does
+- Their specific pain point for Interactly.ai's pitch
+- Why Interactly fits them
+
+Outputs `prospects_enriched.csv`. Skips prospects where `pain_point` is already filled.
 
 ---
 
@@ -83,7 +98,8 @@ python main.py
 
 For each prospect:
 - Detects seniority from title (executive vs manager) → switches tone automatically
-- Generates a personalized email via Claude Sonnet
+- Generates personalized email via **Groq Llama 3.3-70b**
+- Auto-retries if subject line is too generic
 - Logs to Airtable CRM
 - Posts summary to Slack
 
@@ -97,7 +113,29 @@ Outputs `output_emails.csv`.
 python report.py
 ```
 
-Outputs `report.html` — open in browser. This is what you screenshot for your submission.
+Outputs `report.html` — open in browser and screenshot for your submission.
+
+---
+
+## Diagnosing Airtable Issues
+
+If Airtable is showing empty / not logging:
+
+```bash
+python test_airtable.py
+```
+
+This script:
+- Checks all `.env` variables are set
+- Verifies the API connection and URL format
+- Lists which table fields exist vs are missing
+- Sends a test record so you can confirm write access
+
+Common mistakes:
+- Using `airtable.com` instead of `api.airtable.com` in the URL ← fixed in this version
+- Missing `/v0/` in the API path ← fixed
+- Token missing `data.records:write` permission
+- Field name case mismatch (Airtable is case-sensitive)
 
 ---
 
@@ -107,37 +145,48 @@ Outputs `report.html` — open in browser. This is what you screenshot for your 
 
 | Title Contains | Tone | Focus |
 |---|---|---|
-| CMO, CEO, VP, Director… | Strategic, concise | ROI, revenue impact, competitive edge |
-| Manager, Coordinator… | Practical, empathetic | Time saved, workflow relief, team impact |
+| CMO, CEO, VP, Director, Chief… | Direct and strategic, max 2 sentences/paragraph | ROI, revenue impact, competitive edge |
+| Manager, Coordinator… | Warm and practical | Hours saved, workflow relief, team impact |
 
-### Two-Stage Claude Usage
+### Email Quality Guard
+
+Every generated email is checked automatically:
+- Subject line must reference company name, a number, or a specific outcome
+- Body must be 90–120 words
+- If output is too generic → auto-retries with higher temperature and stricter instructions
+
+### Model Used
 
 | Stage | Model | Why |
 |---|---|---|
-| Enrichment (enrich.py) | claude-3-5-haiku | Fast, cheap — high volume processing |
-| Email generation (main.py) | claude-3-5-sonnet | Higher quality for final output |
+| Enrichment (enrich.py) | Groq Llama 3.3-70b | Fast, free, good at structured JSON extraction |
+| Email generation (main.py) | Groq Llama 3.3-70b | High quality, free tier, handles role-aware prompting well |
+
+> **Note:** Originally designed with Claude (Anthropic). Groq is used here as a free-tier alternative with equivalent output quality for this use case.
 
 ---
 
-## Sample Output
+## Sample Terminal Output
 
 ```
 ═══════════════════════════════════════════════════════════
-  🚀 GTM Email Agent  —  10 prospects
+  🚀 GTM Email Agent (Groq)  ·  10 prospects
 ═══════════════════════════════════════════════════════════
 
-[1/10] Sarah Chen  |  CMO  |  WellBridge Medical Group
-  ✉  Subject : "When Did Re-Engaging Patients Get This Hard?"
-  📋 Airtable: ✓
+[1/10] Sarah Chen  ·  CMO  ·  WellBridge Medical Group
+      ✉  Generating email ... done
+      📌 Subject: "WellBridge Losing Patients Between Visits?"
+      📋 Airtable: logged ✓
 
-[2/10] James Okafor  |  VP Operations  |  CareLink Urgent Care
-  ✉  Subject : "Your Staff Spends 6 Hours/Day on Patient Calls"
-  📋 Airtable: ✓
+[2/10] James Okafor  ·  VP Operations  ·  CareLink Urgent Care
+      ✉  Generating email ... done
+      📌 Subject: "CareLink's Staff Spends 6 Hours/Day on Calls"
+      📋 Airtable: logged ✓
 ...
 ═══════════════════════════════════════════════════════════
   ✅ Done in 18.4s
-  📊 10/10 emails generated  |  0 failed
-  📁 Output → output_emails.csv
+  📊 10/10 generated  |  0 failed
+  📁 Saved → output_emails.csv
 ═══════════════════════════════════════════════════════════
 ```
 
@@ -147,18 +196,19 @@ Outputs `report.html` — open in browser. This is what you screenshot for your 
 
 ```
 gtm-pipeline/
-├── STEP1_FIND_PROSPECTS.md   # How to find real prospects
-├── prospects.csv             # Input: fill with real people
-├── enrich.py                 # Step 2: website scrape + Claude pain point extraction
-├── main.py                   # Step 3: email generation → Airtable → Slack
-├── report.py                 # Step 4: HTML report generator
+├── STEP1_FIND_PROSPECTS.md      # How to find real LinkedIn prospects
+├── prospects.csv                # Input: fill with real people
+├── enrich.py                    # Step 2: website scrape + Groq pain point extraction
+├── main.py                      # Step 3: email generation → Airtable → Slack
+├── report.py                    # Step 4: HTML report generator
+├── test_airtable.py             # Diagnostic: verify Airtable connection + fields
 ├── requirements.txt
 ├── .env.example
 └── README.md
-─── Auto-generated ───────────────────────────────────────
-├── prospects_enriched.csv    # After enrich.py
-├── output_emails.csv         # After main.py
-└── report.html               # After report.py
+─── Auto-generated ──────────────────────────────────────────
+├── prospects_enriched.csv       # After enrich.py
+├── output_emails.csv            # After main.py
+└── report.html                  # After report.py
 ```
 
 ---
@@ -167,12 +217,12 @@ gtm-pipeline/
 
 | Interactly JD Deliverable | This Project |
 |---|---|
-| Claude Code agents personalizing emails | ✅ Claude Sonnet, role-aware prompting |
+| AI agents personalizing emails | ✅ Groq Llama 3.3, role-aware prompting, quality guard |
 | Apollo → HubSpot sync | ✅ CSV (Apollo format) → Airtable (CRM) |
-| Weekly pipeline report to Slack | ✅ Slack webhook with subject line preview |
-| Stale deal alerts / triggers | 🔜 Easy to add with scheduled cron |
+| Weekly pipeline report to Slack | ✅ Slack webhook with subject line previews |
+| Stale deal alerts / triggers | 🔜 Easy to add with scheduled cron + status field |
 | LinkedIn monitor | 🔜 Foundation laid — enrichment reads LinkedIn URLs |
 
 ---
 
-*Built by [Your Name] · [LinkedIn] · IIT Kanpur*
+*Built for Interactly.ai GTM Automation Internship · IIT Kanpur*"# GTM-Email-Personalization-Agent" 

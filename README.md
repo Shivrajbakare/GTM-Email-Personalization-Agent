@@ -30,7 +30,6 @@ pip install -r requirements.txt
 ### Configure environment
 ```bash
 cp .env.example .env
-# Open .env and paste your credentials
 ```
 
 **Required:**

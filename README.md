@@ -51,8 +51,6 @@ cp .env.example .env
 3. Developer hub → Personal access tokens → Create token (needs `data.records:read` + `data.records:write`)
 4. Base ID: Help → API Documentation → copy `appXXXXXXXXXXXXXX` from URL
 
-> **Diagnose Airtable issues first:** `python test_airtable.py`
-
 **Get Slack webhook:**
 [api.slack.com/apps](https://api.slack.com/apps) → Create App → Incoming Webhooks → Add to channel
 
